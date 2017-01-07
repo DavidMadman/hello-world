@@ -1,0 +1,67 @@
+//One
+unsigned char Trg; 
+unsigned char Cont; 
+void KeyRead( void ) 
+{ 
+   unsigned char ReadData = PINB^0xff;     // 1    
+   Trg  = ReadData & (ReadData ^ Cont);    // 2    
+   Cont = ReadData;                        // 3 
+} 
+
+
+//Two
+void KeyScan()    //每10mS执行一次键盘扫描任务
+{
+    switch(KeyState)
+    {
+        case 0:
+            if(KeyIsKeyDown())  //有键
+            {
+                KeyState = 1;
+            }
+            break;
+        case 1:
+            if(KeyIsKeyDown())  //有键
+            {
+                KeyState = 2;
+                KeyBufIn();   //将键值送缓冲区
+                KeyStartRptCnt = 0;
+            }
+            else
+            {
+                KeyState = 0;
+            }
+            break;
+        case 2:
+            if(KeyIsKeyDown())  //有键
+            {
+                if(KeyStartRptCnt++ >= 30)
+                {
+                    KeyState = 3;
+                    KeyRptCnt = 0;
+                    KeyBufIn();
+                }
+            }
+            else
+            {
+                KeyState = 1;
+            }
+            break;
+        case 3:
+            if(KeyIsKeyDown())  //有键
+            {
+                if(KeyRptCnt++ >= 20)
+                {
+                    KeyRptCnt = 0;
+                    KeyBufIn();
+                }
+            }
+            else
+            {
+                KeyState = 1;
+            }
+            break;
+        default:
+            break;
+    }
+}
